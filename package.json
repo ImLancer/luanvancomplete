@@ -1,0 +1,51 @@
+{
+  "name": "book-store",
+  "version": "1.0.0",
+  "description": "Book-Store Rest Api",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --runInBand",
+    "test-user": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose user.spec.js",
+    "test-account": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose account.spec.js",
+    "test-product": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose product.spec.js",
+    "test-order": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose order.spec.js",
+    "start": "nodemon start.js"
+  },
+  "jest": {
+    "transform": {},
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "jest-extended/all"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "mjs"
+    ],
+    "verbose": true,
+    "coverageDirectory": "/home/abc/jest-supertest/coverage/my_reports/",
+    "coverageReporters": [
+      "html",
+      "text"
+    ]
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "mongoose": "^6.0.11",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "jest": "^27.3.1",
+    "jest-extended": "^1.1.0",
+    "nodemon": "^2.0.13",
+    "supertest": "^6.1.6"
+  }
+}
