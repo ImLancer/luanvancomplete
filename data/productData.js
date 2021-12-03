@@ -52,6 +52,17 @@ export const insertData = {
     "prodAuthor": ["J. K. Rowling"]
 }
 
+export const insertWrongData = {
+    "_id": 4,
+    "prodName": "Harry Potter va hon da phu thuy",
+    "prodNumber": "25",
+    "prodPrice": 155000,
+    "prodSale": 0,
+    "prodImageUrl": "https://cf.shopee.vn/file/23d5144fc142b518762f7d24aa9afa8e",
+    "prodCategories": ["Phieu luu", "Hanh dong", "Tieu thuyet"],
+    "prodAuthor": ["J. K. Rowling"]
+}
+
 export const updateData = {
     "_id": 1,
     "prodName": "Harry Potter va hon da phu thuy",

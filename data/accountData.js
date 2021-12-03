@@ -27,14 +27,21 @@ export const checkProp = [
 
 export const insertData = {
     "_id": 4,
-    "username": "finalrei01",
+    "username": "finalrei02",
+    "password": "finalrei01",
+    "type": "employee"
+}
+
+export const insertWrongData = {
+    "_id": 4,
+    "username": 123,
     "password": "finalrei01",
     "type": "employee"
 }
 
 export const updateData = {
     "_id": 1,
-    "username": "finalrei03",
+    "username": "finalrei01",
     "password": "finalrei03",
     "type": "employee"
 }

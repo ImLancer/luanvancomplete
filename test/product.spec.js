@@ -2,12 +2,13 @@ import app from '../server.js'
 import request from 'supertest'
 import mongoose from 'mongoose'
 import { Product } from '../models/product.js';
-import { datas, insertData, findData, updateData, checkProp } from '../data/productData.js';
+import { datas, insertData, findData, updateData, checkProp, insertWrongData } from '../data/productData.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
 let changeData = updateData;
 let data = insertData;
+let wrongData = insertWrongData;
 let findProduct = findData;
 let path = '/product/';
 
@@ -32,7 +33,7 @@ describe( "Product API - PATH: /product", () => {
             useNewUrlParser: true,
             UseUnifiedTopology: true
         });
-        const response = await request(app).post(path + 'create').send(datas);
+        const response = await request(app).post(path + 'createMany').send(datas);
     })
 
     afterAll(async () => {
@@ -42,137 +43,135 @@ describe( "Product API - PATH: /product", () => {
 
     //GET ALL PRODUCT
     describe("Method: GET - Path: /product/ - Description: Get all products from database", () => {
-
-        test("Status code should be 200 ", async () => {
-            const response = await request(app).get(path);
-            expect(response.statusCode).toBe(200);
-        });
-        test("Content type header should be json", async () => {
-            const response = await request(app).get(path);
-            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
-        });
-        test("List products should be Array & Length should be 3", async () => {
-            const response = await request(app).get(path);
-            expect(Array.isArray(response.body)).toBeTruthy();
-            expect(response.body.length).toEqual(datas.length);
-        });
-        test("All unit in list products should have full properties", async () => {
-            const response = await request(app).get(path)
-            let i = 0;
-            while(i < response.body.length){
-                expect(response.body[i]).toContainKeys(checkProp);
-                i++;
-            }
+        test("Check status, content-type, structure of response", async () => {
+            const response = await request(app).get(path).expect(200).expect('Content-Type', /json/).then((response) => {
+                expect(response.body).toEqual(
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            _id: expect.any(Number),
+                            prodName: expect.any(String),
+                            prodNumber: expect.any(Number),
+                            prodPrice: expect.any(Number),
+                            prodSale: expect.any(Number),
+                            prodImageUrl: expect.any(String),
+                            prodCategories: expect.arrayContaining([expect.any(String)]),
+                            prodAuthor: expect.arrayContaining([expect.any(String)]),
+                            __v: expect.any(Number)
+                        })
+                    ])
+                )
+            })
         });
     })
 
     //GET A PRODUCT BY ID
     describe("Method: GET - Path: /product/:_id - Description: Get an product from database by id", () => {
-
-        test("Status code should be 200 ", async () => {
-            const _id = 1;
-            const response = await request(app).get(path + _id);
-            expect(response.statusCode).toBe(200);
+        test("Check status, content-type, structure of response", async () => {
+            const response = await request(app).get(path + findProduct._id).expect(200).expect('Content-Type', /json/).then((response) => {
+                expect(response.body).toEqual(
+                    expect.objectContaining({
+                        _id: expect.any(Number),
+                        prodName: expect.any(String),
+                        prodNumber: expect.any(Number),
+                        prodPrice: expect.any(Number),
+                        prodSale: expect.any(Number),
+                        prodImageUrl: expect.any(String),
+                        prodCategories: expect.arrayContaining([expect.any(String)]),
+                        prodAuthor: expect.arrayContaining([expect.any(String)]),
+                        __v: expect.any(Number)
+                    })
+                )
+            })
         });
-        test("Content type header should be json", async () => {
-            const _id = 1;
-            const response = await request(app).get(path + _id);
-            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        test("Check containing", async () => {
+            const response = await request(app).get(path + findProduct._id);
+            const product = await Product.findOne({_id: findProduct._id});
+            let checkFindProduct = Object.entries(product._doc);
+            expect(response.body).toContainAllEntries(checkFindProduct);
         });
-        test("Product should have full properties", async () => {
-            const _id = 1;
-            const response = await request(app).get(path + _id);
-            expect(response.body).toContainKeys(checkProp);
-        });
-        test("Product should be same content with the one, we are finding", async () => {
-            const find = findProduct;
-            const response = await request(app).get(path + find._id)
-            let checkFindData = Object.entries(find);
-            expect(response.body).toContainEntries(checkFindData);
-
-            // old way
-            // expect(response.body._id).toBe(find._id);
-            // expect(response.body.prodName).toBe(find.prodName);
-            // expect(response.body.prodNumber).toBe(find.prodNumber);
-            // expect(response.body.prodPrice).toBe(find.prodPrice);
-            // expect(response.body.prodSale).toBe(find.prodSale);
-            // expect(response.body.prodImageUrl).toBe(find.prodImageUrl);
-            // expect(response.body.prodCategories).toEqual(find.prodCategories);
-            // expect(response.body.prodAuthor).toEqual(find.prodAuthor);
+        test("Check error 404", async () => {
+            let _id = '50000'
+            const response = await request(app).get(path + _id).expect(404);
         });
     })
 
     //CREATE PRODUCT
     describe("Method: POST - Path: /product/create - Description: Create a product", () => {
-        afterEach( async () => {
-            await request(app).delete(path + 'delete/4');
-        })
-
-        test("Status code should be 200 ", async () => {
-            const response = await request(app).post(path + 'create').send(data);
-            expect(response.statusCode).toBe(200);
+        
+        test("Check status, content-type, structure of response", async () => {
+            const response = await request(app).post(path + 'create').send(data).expect(200).expect('Content-Type', /json/).then((response) => {
+                expect(response.body).toEqual(
+                    expect.objectContaining({
+                        _id: expect.any(Number),
+                        prodName: expect.any(String),
+                        prodNumber: expect.any(Number),
+                        prodPrice: expect.any(Number),
+                        prodSale: expect.any(Number),
+                        prodImageUrl: expect.any(String),
+                        prodCategories: expect.arrayContaining([expect.any(String)]),
+                        prodAuthor: expect.arrayContaining([expect.any(String)]),
+                        __v: expect.any(Number)
+                    })
+                )
+            })
         });
-        test("Content type header should be json", async () => {
-            const response = await request(app).post(path + 'create').send(data);
-            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        test("Check contain of data in DB", async () => {
+            const response = await request(app).get(path + data._id);
+            const product = await Product.findById({_id: data._id});
+            let checkInsertProduct = Object.entries(product._doc);
+            expect(response.body).toContainAllEntries(checkInsertProduct);
         });
-        test("Product should be into database", async () => {
-            const response = await request(app).post(path + 'create').send(data);
-            const product = await request(app).get(path + data._id);
-            expect(product).toBeTruthy();
+        test("Check validate request", async () => {
+            const response = await request(app).post(path + 'create').send(wrongData).expect(422);
         });
-        test("Product in response and database should be same content with creating product", async () => {
-            await request(app).post(path + 'create').send(data).then(async (response) => {
-                let checkInsertData = Object.entries(data);
-                //Response Product
-                expect(response.body[0]).toContainEntries(checkInsertData);
-
-                //Database Product
-                const product = await Product.findById(data._id);
-                expect(product._doc).toContainEntries(checkInsertData);
-            });
-        })
     })
 
     //UPDATE PRODUCT
     describe("Method: PATCH - Path: /product/update - Description: Update a product", () => {
-        test("Status code should be 200 ", async () => {
-            const response = await request(app).patch(path + 'update').send(changeData);
-            expect(response.statusCode).toBe(200);
+        test("Check status, content-type, structure of response", async () => {
+            const response = await request(app).patch(path + 'update').send(changeData).expect(200).expect('Content-Type', /json/).then((response) => {
+                expect(response.body).toEqual(
+                    expect.objectContaining({
+                        _id: expect.any(Number),
+                        prodName: expect.any(String),
+                        prodNumber: expect.any(Number),
+                        prodPrice: expect.any(Number),
+                        prodSale: expect.any(Number),
+                        prodImageUrl: expect.any(String),
+                        prodCategories: expect.arrayContaining([expect.any(String)]),
+                        prodAuthor: expect.arrayContaining([expect.any(String)]),
+                        __v: expect.any(Number)
+                    })
+                )
+            })
         });
-        test("Content type header should be json", async () => {
-            const response = await request(app).patch(path + 'update').send(changeData);
-            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        test("Check contain of data in DB", async () => {
+            const response = await request(app).get(path + changeData._id);
+            const product = await Product.findById({_id: changeData._id});
+            let checkChangeData = Object.entries(product._doc);
+            expect(response.body).toContainAllEntries(checkChangeData);
         });
-        test("Product should be into database", async () => {
-            const response = await request(app).patch(path + 'update').send(changeData);
-            const product = await request(app).get(path + changeData._id);
-            expect(product).toBeTruthy();
+        test("Check validate request", async () => {
+            const response = await request(app).patch(path + 'update').send(wrongData).expect(422);
         });
-        test("Product in response and database should be same content with updating product", async () => {
-            await request(app).patch(path + 'update').send(changeData).then(async (response) => {
-                let checkUpdateData = Object.entries(changeData);
-                //Response Account
-                expect(response.body).toContainEntries(checkUpdateData);
-
-                //Database Product
-                const product = await Product.findById(changeData._id);
-                expect(product._doc).toContainEntries(checkUpdateData);
-            });
-        })
     })
 
     //DELETE PRODUCT
     describe("Method: DELETE - Path: /product/delete/:_id - Description: Delete an product from database by ID", () => {
-        test("Status code should be 200 ", async () => {
+        test("Check status of response", async () => {
             const _id = 1;
-            const response = await request(app).delete(path + 'delete/' + _id);
-            expect(response.statusCode).toBe(204);
+            const response = await request(app).delete(path + 'delete/' + _id).expect(204).then((response) => {
+                expect(response.body).toEqual({})
+            })
         });
-        test("Account should be deleted from database", async () => {
+        test("Check data is deleted from DB", async () => {
             const _id = 1;
             const response = await request(app).delete(path + 'delete/' + _id);
             expect(await Product.findOne({_id: _id})).toBeFalsy();
+        });
+        test("Check error 404", async () => {
+            let _id = '50000'
+            const response = await request(app).delete(path + 'delete/' + _id).expect(404);
         });
     })
 });

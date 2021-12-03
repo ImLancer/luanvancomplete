@@ -47,6 +47,16 @@ export const insertData = {
     "account": "finalrei01",
 }
 
+export const insertWrongData = {
+    "_id": 4,
+    "name": "Nguyen Van A",
+    "born": "1998",
+    "sex": "Nam",
+    "address": "251 Tran Hoang Na, NK, CT",
+    "phone": "0342925849",
+    "account": "finalrei01",
+}
+
 
 export const updateData = {
     "_id": 1,
