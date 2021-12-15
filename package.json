@@ -8,12 +8,13 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --runInBand account.spec.js user.spec.js product.spec.js",
+    "start": "nodemon start.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand account.spec.js user.spec.js product.spec.js",
     "test-user": "node --experimental-vm-modules node_modules/jest/bin/jest.js user.spec.js",
-    "test-account": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch account.spec.js",
+    "test-account": "node --experimental-vm-modules node_modules/jest/bin/jest.js account.spec.js",
     "test-product": "node --experimental-vm-modules node_modules/jest/bin/jest.js product.spec.js",
-    "test-order": "node --experimental-vm-modules node_modules/jest/bin/jest.js order.spec.js",
-    "start": "nodemon start.js"
+    "test-accountTest": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch accountTest.spec.js",
+    "test-order": "node --experimental-vm-modules node_modules/jest/bin/jest.js order.spec.js"
   },
   "jest": {
     "transform": {},
@@ -30,6 +31,15 @@
     "coverageReporters": [
       "html",
       "text"
+    ],
+    "reporters": [
+      "default",
+      [
+        "./node_modules/jest-html-reporter",
+        {
+          "pageTitle": "TestReport"
+        }
+      ]
     ]
   },
   "author": "",
@@ -44,8 +54,9 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "jest": "^27.3.1",
+    "jest": "^27.4.3",
     "jest-extended": "^1.1.0",
+    "jest-html-reporter": "^3.4.2",
     "nodemon": "^2.0.13",
     "supertest": "^6.1.6"
   }

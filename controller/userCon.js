@@ -28,8 +28,15 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
     try {
         const newUsers = req.body;
-        const user = await User.create(newUsers);
-        res.status(200).json(user);
+        const handle = typeof req.body._id === 'number' && typeof req.body.name === 'string' && typeof req.body.born === 'number' && typeof req.body.sex === 'string' && typeof req.body.address === 'string' && typeof req.body.phone === 'string' && typeof req.body.account === 'string';
+
+        if(!handle){
+            res.status(422).json()
+        }
+        if(handle){
+            const user = await User.create(newUsers);
+            res.status(200).json(user);
+        }
     } catch (err) {
         res.status(422).json({message: 'Validation Error'});
     }

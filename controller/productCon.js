@@ -28,8 +28,15 @@ export const getProductById = async (req, res) => {
 export const createProduct = async (req, res) => {
     try {
         const newProducts = req.body;
-        const products = await Product.create(newProducts);
-        res.status(200).json(products);
+        const handle = typeof req.body._id === 'number' && typeof req.body.prodName === 'string' && typeof req.body.prodNumber === 'number' && typeof req.body.prodPrice === 'number' && typeof req.body.prodSale === 'number' && typeof req.body.prodImageUrl === 'string' && typeof req.body.prodCategories === 'object' && typeof req.body.prodAuthor === 'object';
+
+        if(!handle){
+            res.status(422).json()
+        }
+        if(handle){
+            const products = await Product.create(newProducts);
+            res.status(200).json(products);
+        }
     } catch (err) {
         res.status(422).json({message: 'Validation Error'});
     }

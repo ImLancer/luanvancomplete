@@ -42,9 +42,17 @@ describe( "Product API - PATH: /product", () => {
     })
 
     //GET ALL PRODUCT
-    describe("Method: GET - Path: /product/ - Description: Get all products from database", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).get(path).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("GET -- /product/ -- Get all products from database", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).get(path)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).get(path)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t prodName: String,\n\t prodNumber: Number,\n\t prodPrice: Number,\n\t prodSale: Number,\n\t prodImageUrl: String,\n\t prodCategories: [String],\n\t prodAuthor: [String],\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).get(path).then((response) => {
                 expect(response.body).toEqual(
                     expect.arrayContaining([
                         expect.objectContaining({
@@ -65,9 +73,17 @@ describe( "Product API - PATH: /product", () => {
     })
 
     //GET A PRODUCT BY ID
-    describe("Method: GET - Path: /product/:_id - Description: Get an product from database by id", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).get(path + findProduct._id).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("GET -- /product/:_id -- Get an product from database by id", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).get(path + findProduct._id)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).get(path + findProduct._id)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t prodName: String,\n\t prodNumber: Number,\n\t prodPrice: Number,\n\t prodSale: Number,\n\t prodImageUrl: String,\n\t prodCategories: [String],\n\t prodAuthor: [String],\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).get(path + findProduct._id).then((response) => {
                 expect(response.body).toEqual(
                     expect.objectContaining({
                         _id: expect.any(Number),
@@ -89,17 +105,27 @@ describe( "Product API - PATH: /product", () => {
             let checkFindProduct = Object.entries(product._doc);
             expect(response.body).toContainAllEntries(checkFindProduct);
         });
-        test("Check error 404", async () => {
+        test("Check error: 404 - File Not Found", async () => {
             let _id = '50000'
             const response = await request(app).get(path + _id).expect(404);
         });
     })
 
     //CREATE PRODUCT
-    describe("Method: POST - Path: /product/create - Description: Create a product", () => {
-        
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).post(path + 'create').send(data).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("POST -- /product/create -- Create a product", () => {
+        afterEach( async () => {
+            await request(app).delete(path + 'delete/4')
+        })
+        test("Check status code: 200", async () => {
+            const response = await request(app).post(path + 'create').send(data)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).post(path + 'create').send(data)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t prodName: String,\n\t prodNumber: Number,\n\t prodPrice: Number,\n\t prodSale: Number,\n\t prodImageUrl: String,\n\t prodCategories: [String],\n\t prodAuthor: [String],\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).post(path + 'create').send(data).then((response) => {
                 expect(response.body).toEqual(
                     expect.objectContaining({
                         _id: expect.any(Number),
@@ -116,20 +142,28 @@ describe( "Product API - PATH: /product", () => {
             })
         });
         test("Check contain of data in DB", async () => {
-            const response = await request(app).get(path + data._id);
+            const response = await request(app).post(path + 'create').send(data);
             const product = await Product.findById({_id: data._id});
             let checkInsertProduct = Object.entries(product._doc);
             expect(response.body).toContainAllEntries(checkInsertProduct);
         });
-        test("Check validate request", async () => {
+        test("Check request structure: \n\t[{\n\t _id: Number,\n\t prodName: String,\n\t prodNumber: Number,\n\t prodPrice: Number,\n\t prodSale: Number,\n\t prodImageUrl: String,\n\t prodCategories: [String],\n\t prodAuthor: [String],\n\t __v: Number\n\t}]", async () => {
             const response = await request(app).post(path + 'create').send(wrongData).expect(422);
         });
     })
 
     //UPDATE PRODUCT
-    describe("Method: PATCH - Path: /product/update - Description: Update a product", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).patch(path + 'update').send(changeData).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("PATCH -- /product/update -- Update a product", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).patch(path + 'update').send(changeData)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).patch(path + 'update').send(changeData)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t prodName: String,\n\t prodNumber: Number,\n\t prodPrice: Number,\n\t prodSale: Number,\n\t prodImageUrl: String,\n\t prodCategories: [String],\n\t prodAuthor: [String],\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).patch(path + 'update').send(changeData).then((response) => {
                 expect(response.body).toEqual(
                     expect.objectContaining({
                         _id: expect.any(Number),
@@ -151,17 +185,17 @@ describe( "Product API - PATH: /product", () => {
             let checkChangeData = Object.entries(product._doc);
             expect(response.body).toContainAllEntries(checkChangeData);
         });
-        test("Check validate request", async () => {
+        test("Check request structure: \n\t[{\n\t _id: Number,\n\t prodName: String,\n\t prodNumber: Number,\n\t prodPrice: Number,\n\t prodSale: Number,\n\t prodImageUrl: String,\n\t prodCategories: [String],\n\t prodAuthor: [String],\n\t __v: Number\n\t}]", async () => {
             const response = await request(app).patch(path + 'update').send(wrongData).expect(422);
         });
     })
 
     //DELETE PRODUCT
-    describe("Method: DELETE - Path: /product/delete/:_id - Description: Delete an product from database by ID", () => {
-        test("Check status of response", async () => {
+    describe("DELETE -- /product/delete/:_id -- Delete an product from database by ID", () => {
+        test("Check response status: 204", async () => {
             const _id = 1;
-            const response = await request(app).delete(path + 'delete/' + _id).expect(204).then((response) => {
-                expect(response.body).toEqual({})
+            const response = await request(app).delete(path + 'delete/' + _id).then((response) => {
+                expect(response.statusCode).toBe(204)
             })
         });
         test("Check data is deleted from DB", async () => {
@@ -169,7 +203,7 @@ describe( "Product API - PATH: /product", () => {
             const response = await request(app).delete(path + 'delete/' + _id);
             expect(await Product.findOne({_id: _id})).toBeFalsy();
         });
-        test("Check error 404", async () => {
+        test("Check error: 404 - File Not Found", async () => {
             let _id = '50000'
             const response = await request(app).delete(path + 'delete/' + _id).expect(404);
         });

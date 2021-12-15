@@ -3,15 +3,27 @@ import request from 'supertest'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv';
 import { Account } from '../models/account.js';
-import { datas, insertData, updateData, findData, checkProp, insertWrongData } from '../data/accountData.js';
-import { response } from 'express';
+import { datas, insertData, updateData, findData, getAllStructure, crudStructure, insertWrongData } from '../data/accountData.js';
 dotenv.config();
 
-let changeData = updateData;
+//Describe model
+let Model = Account; // The model use for check the data in database
+let unit; //Integrate with Model, place to save unit get from Model
+
+//Describe data
+let find = findData;
 let data = insertData;
-let wrongData = insertWrongData;
-let findAccount = findData;
-let path = '/account/'
+let wrongData = insertWrongData; //Data with wrong structure
+let changeData = updateData;
+let delete_id = 1;
+let wrong_id = 50000; //Use for 404 check
+
+//Describe path
+let getAllPath = '/account/' //Use for both "GetAll" and "GetById". "GetById" integrate with findData you create in data
+let createPath = '/account/create' //Use for "Create" integrate with data and wrongData
+let createManyPath = '/account/createMany' //Use for "Create" integrate with data and wrongData
+let updatePath = '/account/update' //Use for "Update" integrate with changeData
+let deletePath = '/account/delete/' //Use for "Delete" integrate with delete_id
 
 async function dropAllCollections () {
     const collections = Object.keys(mongoose.connection.collections);
@@ -34,7 +46,7 @@ describe( "Account API", () => {
             useNewUrlParser: true,
             UseUnifiedTopology: true
         });
-        const response = await request(app).post(path + 'createMany').send(datas);
+        const response = await request(app).post(createManyPath).send(datas);
     })
 
     afterAll(async () => {
@@ -43,122 +55,119 @@ describe( "Account API", () => {
     })
 
     //GET ALL ACCOUNT
-    describe("Method: GET - Path: /account/ - Description: Get all accounts from database", () => {
-
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).get(path).expect(200).expect('Content-Type', /json/).then((response) => {
-                expect(response.body).toEqual(
-                    expect.arrayContaining([
-                        expect.objectContaining({
-                            _id: expect.any(Number),
-                            username: expect.any(String),
-                            password: expect.any(String),
-                            type: expect.any(String),
-                            __v: expect.any(Number)
-                        })
-                    ])
-                )
+    describe("GET -- /account/ -- Get all accounts from database", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).get(getAllPath)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).get(getAllPath)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{ _id: Number, username: String, password: String, type: String, __v: Number }]", async () => {
+            const response = await request(app).get(getAllPath).then((response) => {
+                expect(response.body).toEqual(getAllStructure)
             })
         });
     })
 
     //GET AN ACCOUNT BY ID
-    describe("Method: GET - Path: /account/:_id - Description: Get an account from database by id", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).get(path + findAccount._id).expect(200).expect('Content-Type', /json/).then((response) => {
-                expect(response.body).toEqual(
-                    expect.objectContaining({
-                        _id: expect.any(Number),
-                        username: expect.any(String),
-                        password: expect.any(String),
-                        type: expect.any(String),
-                        __v: expect.any(Number)
-                    })
-                )
+    describe("GET -- /account/:_id -- Get an account from database by id", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).get(getAllPath + find._id)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).get(getAllPath + find._id)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{ _id: Number, username: String, password: String, type: String, __v: Number }]", async () => {
+            const response = await request(app).get(getAllPath + find._id).then((response) => {
+                expect(response.body).toEqual(crudStructure)
             })
         });
         test("Check containing", async () => {
-            const response = await request(app).get(path + findAccount._id);
-            const account = await Account.findOne({_id: findAccount._id});
-            let checkFindAccount = Object.entries(account._doc);
+            const response = await request(app).get(getAllPath + find._id);
+            unit = await Model.findOne({_id: find._id});
+            let checkFindAccount = Object.entries(unit._doc);
             expect(response.body).toContainAllEntries(checkFindAccount);
         });
-        test("Check error 404", async () => {
-            let _id = '50000'
-            const response = await request(app).get(path + _id).expect(404);
+        test("Check error: 404 - File Not Found", async () => {
+            const response = await request(app).get(getAllPath + wrong_id).expect(404);
         });
     })
 
     //CREATE ACCOUNT
-    describe("Method: POST - Path: /account/create - Description: Create an account", () => {
-
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).post(path + 'create').send(data).expect(200).expect('Content-Type', /json/).then((response) => {
-                expect(response.body).toEqual(
-                    expect.objectContaining({
-                        _id: expect.any(Number),
-                        username: expect.any(String),
-                        password: expect.any(String),
-                        type: expect.any(String),
-                        __v: expect.any(Number)
-                    })
-                )
+    describe("POST -- /account/create -- Create an account", () => {
+        afterEach( async () => {
+            await request(app).delete(getAllPath + 'delete/4')
+        })
+        test("Check status code: 200", async () => {
+            const response = await request(app).post(createPath).send(data)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).post(createPath).send(data)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{ _id: Number, username: String, password: String, type: String, __v: Number }]", async () => {
+            const response = await request(app).post(createPath).send(data).then((response) => {
+                expect(response.body).toEqual(crudStructure)
             })
         });
         test("Check contain of data in DB", async () => {
-            const response = await request(app).get(path + data._id);
-            const account = await Account.findById({_id: data._id});
-            let checkInsertData = Object.entries(account._doc);
+            const response = await request(app).post(createPath).send(data);
+            unit = await Model.findById({_id: data._id});
+            let checkInsertData = Object.entries(unit._doc);
             expect(response.body).toContainAllEntries(checkInsertData);
         });
-        test("Check validate request", async () => {
-            const response = await request(app).post(path + 'create').send(wrongData).expect(422);
+        test("Check request structure: \n\t[{ _id: Number, username: String, password: String, type: String }]", async () => {
+            const response = await request(app).post(createPath).send(wrongData).expect(422);
         });
     })
 
     //UPDATE ACCOUNT
-    describe("Method: PATCH - Path: /account/update - Description: Update an account", () => {
-
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).patch(path + 'update').send(changeData).expect(200).expect('Content-Type', /json/).then((response) => {
-                expect(response.body).toEqual(
-                    expect.objectContaining({
-                        _id: expect.any(Number),
-                        username: expect.any(String),
-                        password: expect.any(String),
-                        type: expect.any(String),
-                        __v: expect.any(Number)
-                    })
-                )
+    describe("PATCH -- /account/update -- Update an account", () => {
+        afterEach( async () => {
+            await await request(app).patch(updatePath).send(datas[0]);
+        })
+        test("Check status code: 200", async () => {
+            const response = await request(app).patch(updatePath).send(changeData);
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).patch(updatePath).send(changeData);
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{ _id: Number, username: String, password: String, type: String, __v: Number }]", async () => {
+            const response = await request(app).patch(updatePath).send(changeData).then((response) => {
+                expect(response.body).toEqual(crudStructure);
             })
         });
         test("Check contain of data in DB", async () => {
-            const response = await request(app).get(path + changeData._id);
-            const account = await Account.findById({_id: changeData._id});
-            let checkInsertData = Object.entries(account._doc);
+            const response = await request(app).get(getAllPath + changeData._id);
+            unit = await Model.findById({_id: changeData._id});
+            let checkInsertData = Object.entries(unit._doc);
             expect(response.body).toContainAllEntries(checkInsertData);
         });
-        test("Check validate request", async () => {
-            const response = await request(app).patch(path + 'update').send(wrongData).expect(422);
+        test("Check request structure: \n\t[{ _id: Number, username: String, password: String, type: String }]", async () => {
+            const response = await request(app).patch(updatePath).send(wrongData).expect(422);
         });
     })
 
     //DELETE ACCOUNT
-    describe("Method: DELETE - Path: /account/delete/:_id - Description: Delete an account from database by ID", () => {
-        test("Check status of response", async () => {
-            const _id = 1;
-            const response = await request(app).delete(path + 'delete/' + _id).expect(204).then((response) => {
-                expect(response.body).toEqual({})
+    describe("DELETE -- /account/delete/:_id -- Delete an account from database by ID", () => {
+        test("Check response status: 204", async () => {
+            const response = await request(app).delete(deletePath + delete_id).then((response) => {
+                expect(response.statusCode).toBe(204);
             })
         });
         test("Check data is deleted from DB", async () => {
-            const _id = 1;
-            const response = await request(app).delete(path + 'delete/' + _id);
-            expect(await Account.findOne({_id: _id})).toBeFalsy();
+            const response = await request(app).delete(deletePath + delete_id);
+            expect(await Model.findOne({_id: delete_id})).toBeFalsy();
         });
-        test("Check error 404", async () => {
-            let _id = '50000'
-            const response = await request(app).delete(path + 'delete/' + _id).expect(404);
+        test("Check error: 404 - File Not Found", async () => {
+            const response = await request(app).delete(deletePath + wrong_id).expect(404);
         });
     })
 });

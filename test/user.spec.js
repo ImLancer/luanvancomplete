@@ -42,9 +42,17 @@ describe( "API User - PATH: /user", () => {
     })
 
     //GET ALL USER
-    describe("Method: GET - Path: /user/ - Description: Get all users from database", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).get(path).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("GET -- /user/ -- Get all users from database", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).get(path)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).get(path)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t name: String,\n\t born: Number,\n\t sex: String,\n\t taddress: String,\n\t phone: String,\n\t account: String,\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).get(path).then((response) => {
                 expect(response.body).toEqual(
                     expect.arrayContaining([
                         expect.objectContaining({
@@ -64,9 +72,17 @@ describe( "API User - PATH: /user", () => {
     })
 
     //GET AN USER BY ID
-    describe("Method: GET - Path: /user/:_id - Description: Get an user from database by id", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).get(path + findUser._id).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("GET -- /user/:_id -- Get an user from database by id", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).get(path + findUser._id)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).get(path + findUser._id)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t name: String,\n\t born: Number,\n\t sex: String,\n\t taddress: String,\n\t phone: String,\n\t account: String,\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).get(path + findUser._id).then((response) => {
                 expect(response.body).toEqual(
                     expect.objectContaining({
                         _id: expect.any(Number),
@@ -87,16 +103,27 @@ describe( "API User - PATH: /user", () => {
             let checkFindUser = Object.entries(user._doc);
             expect(response.body).toContainAllEntries(checkFindUser);
         });
-        test("Check error 404", async () => {
+        test("Check error: 404 - File Not Found", async () => {
             let _id = '50000'
             const response = await request(app).get(path + _id).expect(404);
         });
     })
 
     //CREATE USER
-    describe("Method: POST - Path: /user/create - Description: Create an user", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).post(path + 'create').send(data).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("POST -- /user/create -- Create an user", () => {
+        afterEach( async () => {
+            await request(app).delete(path + 'delete/4')
+        })
+        test("Check status code: 200", async () => {
+            const response = await request(app).post(path + 'create').send(data)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).post(path + 'create').send(data)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t name: String,\n\t born: Number,\n\t sex: String,\n\t taddress: String,\n\t phone: String,\n\t account: String,\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).post(path + 'create').send(data).then((response) => {
                 expect(response.body).toEqual(
                     expect.objectContaining({
                         _id: expect.any(Number),
@@ -112,20 +139,28 @@ describe( "API User - PATH: /user", () => {
             })
         });
         test("Check contain of data in DB", async () => {
-            const response = await request(app).get(path + data._id);
+            const response = await request(app).post(path + 'create').send(data);
             const user = await User.findById({_id: data._id});
             let checkInsertData = Object.entries(user._doc);
             expect(response.body).toContainAllEntries(checkInsertData);
         });
-        test("Check validate request", async () => {
+        test("Check request structure: \n\t[{\n\t _id: Number,\n\t name: String,\n\t born: Number,\n\t sex: String,\n\t taddress: String,\n\t phone: String,\n\t account: String,\n\t __v: Number\n\t}]", async () => {
             const response = await request(app).post(path + 'create').send(wrongData).expect(422);
         });
     })
 
     //UPDATE USER
-    describe("Method: PATCH - Path: /user/update - Description: Update an user", () => {
-        test("Check status, content-type, structure of response", async () => {
-            const response = await request(app).patch(path + 'update').send(changeData).expect(200).expect('Content-Type', /json/).then((response) => {
+    describe("PATCH -- /user/update -- Update an user", () => {
+        test("Check status code: 200", async () => {
+            const response = await request(app).patch(path + 'update').send(changeData)
+            expect(response.statusCode).toBe(200);
+        });
+        test("Check content-type: JSON", async () => {
+            const response = await request(app).patch(path + 'update').send(changeData)
+            expect(response.header['content-type']).toBe('application/json; charset=utf-8');
+        });
+        test("Check response structure: \n\t[{\n\t _id: Number,\n\t name: String,\n\t born: Number,\n\t sex: String,\n\t taddress: String,\n\t phone: String,\n\t account: String,\n\t __v: Number\n\t}]", async () => {
+            const response = await request(app).patch(path + 'update').send(changeData).then((response) => {
                 expect(response.body).toEqual(
                     expect.objectContaining({
                         _id: expect.any(Number),
@@ -146,17 +181,17 @@ describe( "API User - PATH: /user", () => {
             let checkChangeData = Object.entries(user._doc);
             expect(response.body).toContainAllEntries(checkChangeData);
         });
-        test("Check validate request", async () => {
+        test("Check request structure: \n\t[{\n\t _id: Number,\n\t name: String,\n\t born: Number,\n\t sex: String,\n\t taddress: String,\n\t phone: String,\n\t account: String,\n\t __v: Number\n\t}]", async () => {
             const response = await request(app).patch(path + 'update').send(wrongData).expect(422);
         });
     })
 
     //DELETE USER
-    describe("Method: DELETE - Path: /user/delete/:_id - Description: Delete an user from database by ID", () => {
-        test("Check status of response", async () => {
+    describe("DELETE -- /user/delete/:_id -- Delete an user from database by ID", () => {
+        test("Check response status: 204", async () => {
             const _id = 1;
-            const response = await request(app).delete(path + 'delete/' + _id).expect(204).then((response) => {
-                expect(response.body).toEqual({})
+            const response = await request(app).delete(path + 'delete/' + _id).then((response) => {
+                expect(response.statusCode).toBe(204)
             })
         });
         test("Check data is deleted from DB", async () => {
@@ -164,7 +199,7 @@ describe( "API User - PATH: /user", () => {
             const response = await request(app).delete(path + 'delete/' + _id);
             expect(await User.findOne({_id: _id})).toBeFalsy();
         });
-        test("Check error 404", async () => {
+        test("Check error: 404 - File Not Found", async () => {
             let _id = '50000'
             const response = await request(app).delete(path + 'delete/' + _id).expect(404);
         });
